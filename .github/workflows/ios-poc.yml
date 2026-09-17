@@ -91,12 +91,19 @@ jobs:
           appium driver install xcuitest@"${XCUITEST_DRIVER_VERSION}"
           appium driver list --installed
 
+      # The image's default python3 is Homebrew's and is externally managed
+      # (PEP 668), so a direct pip install fails. setup-python provides an
+      # interpreter we own.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install the Python client
         run: |
           set -euxo pipefail
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r requirements.txt
-          python3 -m pip show Appium-Python-Client selenium | grep -E '^(Name|Version)'
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip show Appium-Python-Client selenium | grep -E '^(Name|Version)'
 
       - name: Start the Appium server
         run: |
@@ -115,7 +122,7 @@ jobs:
           IOS_PLATFORM_VERSION: ${{ steps.sim.outputs.version }}
           IOS_APP_PATH: ${{ steps.app.outputs.app_path }}
           IOS_BUNDLE_ID: ${{ steps.app.outputs.bundle_id }}
-        run: python3 -m pytest tests/test_ios_smoke.py -v --tb=short
+        run: python -m pytest tests/test_ios_smoke.py -v --tb=short
 
       - name: Upload evidence
         if: always()
