@@ -41,27 +41,27 @@ jobs:
           # Newest available iPhone of the newest available iOS runtime.
           xcrun simctl list devices available --json > devices.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-import json, os, re, sys
+          import json, re, sys
 
-devices = json.load(open("devices.json"))["devices"]
-best = None
-for runtime, devs in devices.items():
-    m = re.search(r"iOS-(\d+)-(\d+)", runtime)
-    if not m:
-        continue
-    version = (int(m.group(1)), int(m.group(2)))
-    for dev in devs:
-        if "iPhone" in dev["name"] and dev.get("isAvailable"):
-            key = (version, dev["name"])
-            if best is None or key > best[0]:
-                best = (key, dev)
-if best is None:
-    sys.exit("no iPhone simulator available on this runner image")
-(version, name), dev = best
-print("udid=%s" % dev["udid"])
-print("name=%s" % name)
-print("version=%d.%d" % version)
-PY
+          devices = json.load(open("devices.json"))["devices"]
+          best = None
+          for runtime, devs in devices.items():
+              m = re.search(r"iOS-(\d+)-(\d+)", runtime)
+              if not m:
+                  continue
+              version = (int(m.group(1)), int(m.group(2)))
+              for dev in devs:
+                  if "iPhone" in dev["name"] and dev.get("isAvailable"):
+                      key = (version, dev["name"])
+                      if best is None or key > best[0]:
+                          best = (key, dev)
+          if best is None:
+              sys.exit("no iPhone simulator available on this runner image")
+          (version, name), dev = best
+          print("udid=%s" % dev["udid"])
+          print("name=%s" % name)
+          print("version=%d.%d" % version)
+          PY
           cat "$GITHUB_OUTPUT"
 
       - name: Boot the simulator
