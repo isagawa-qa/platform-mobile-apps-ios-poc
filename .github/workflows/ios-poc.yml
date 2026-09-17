@@ -38,11 +38,17 @@ jobs:
         id: sim
         run: |
           set -euo pipefail
-          # Newest available iPhone of the newest available iOS runtime.
+          # Newest available iPhone on the newest iOS runtime the ACTIVE Xcode
+          # can drive. Xcode 16.x tops out at iOS 18; a newer runtime is present
+          # on the image but Appium's boot monitor times out against it.
+          XCODE_MAJOR=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          export MAX_IOS_MAJOR=$(( XCODE_MAJOR <= 16 ? 18 : 99 ))
+          echo "xcode major $XCODE_MAJOR -> max iOS major $MAX_IOS_MAJOR"
           xcrun simctl list devices available --json > devices.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, re, sys
+          import json, os, re, sys
 
+          max_major = int(os.environ["MAX_IOS_MAJOR"])
           devices = json.load(open("devices.json"))["devices"]
           best = None
           for runtime, devs in devices.items():
@@ -50,6 +56,8 @@ jobs:
               if not m:
                   continue
               version = (int(m.group(1)), int(m.group(2)))
+              if version[0] > max_major:
+                  continue
               for dev in devs:
                   if "iPhone" in dev["name"] and dev.get("isAvailable"):
                       key = (version, dev["name"])

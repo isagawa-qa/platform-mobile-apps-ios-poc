@@ -34,6 +34,9 @@ def driver():
     options.udid = _required("IOS_UDID")
     options.app = _required("IOS_APP_PATH")
     options.set_capability("appium:newCommandTimeout", 180)
+    # The workflow boots the simulator itself, but Appium re-checks boot status
+    # and its default 120s was not enough on a cold GitHub runner.
+    options.set_capability("appium:simulatorStartupTimeout", 300000)
 
     drv = webdriver.Remote("http://127.0.0.1:4723", options=options)
     try:
