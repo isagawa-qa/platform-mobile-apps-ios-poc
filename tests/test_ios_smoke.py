@@ -37,6 +37,11 @@ def driver():
     # The workflow boots the simulator itself, but Appium re-checks boot status
     # and its default 120s was not enough on a cold GitHub runner.
     options.set_capability("appium:simulatorStartupTimeout", 300000)
+    # WebDriverAgent is compiled by xcodebuild on first use; on a cold runner
+    # that outlasts Appium's default 60s launch wait (run 35269989510).
+    options.set_capability("appium:wdaLaunchTimeout", 600000)
+    options.set_capability("appium:wdaStartupRetries", 2)
+    options.set_capability("appium:wdaStartupRetryInterval", 20000)
 
     drv = webdriver.Remote("http://127.0.0.1:4723", options=options)
     try:
