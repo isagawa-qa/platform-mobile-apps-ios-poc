@@ -88,7 +88,9 @@ jobs:
           mkdir -p apps
           curl -sSL --retry 3 -o apps/app.zip "$APP_URL"
           unzip -q -o apps/app.zip -d apps
-          app_path=$(find "$PWD/apps" -maxdepth 2 -name '*.app' | head -1)
+          # -print -quit, not | head -1: an early pipe close can SIGPIPE the
+          # producer, which pipefail then reports as a step failure.
+          app_path=$(find "$PWD/apps" -maxdepth 2 -name '*.app' -print -quit)
           test -n "$app_path"
           bundle_id=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app_path/Info.plist")
           echo "app_path=$app_path" >> "$GITHUB_OUTPUT"
